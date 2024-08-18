@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+// FIXME: Reset the non selected friend values
+
 const initialFriends = [
   {
     id: 118836,
@@ -61,6 +63,24 @@ export default function App() {
     setShowAddFriend(false);
   };
 
+  // Function to split the bill
+  const handleSplitBill = value => {
+    // Update the friend's balance
+    // Map over the friends array and update the balance of the selected friend
+    // If the friend ID matches the selected friend ID, update the balance
+    // Else, return the friend as is
+    setFriends(friends =>
+      friends.map(friend =>
+        friend.id === selectedFriend.id
+          ? { ...friend, balance: friend.balance + value }
+          : friend
+      )
+    );
+
+    // Close the FormSplitBill component
+    setSelectedFriend(null);
+  };
+
   // 3. RENDER
 
   return (
@@ -84,7 +104,13 @@ export default function App() {
         if null, short-circuit and don't render the FormSplitBill component  
       */}
       <div className="main">
-        {selectedFriend && <FormSplitBill selectedFriend={selectedFriend} />}
+        {selectedFriend && (
+          <FormSplitBill
+            selectedFriend={selectedFriend}
+            onSplitBill={handleSplitBill}
+            key={selectedFriend.id}
+          />
+        )}
       </div>
     </div>
   );
@@ -195,18 +221,53 @@ function FormAddFriend({ onAddFriend }) {
   );
 }
 
-function FormSplitBill({ selectedFriend }) {
+function FormSplitBill({ selectedFriend, onSplitBill }) {
+  const [bill, setBill] = useState("");
+  const [paidByUser, setPaidByUser] = useState("");
+  const [whoisPaying, setWhoIsPaying] = useState("user");
+
+  // Derived state to calculate the friend's expense
+  const paidByFriend = bill ? bill - paidByUser : 0;
+
+  const handleSubmit = event => {
+    event.preventDefault();
+    // Ensure the bill and paidByUser are not empty
+    if (!bill || !paidByUser) return;
+
+    // If the user is paying the bill, pass the user's expense, a positive value which means the friend owes the user
+    // Else, pass the friend's expense, a negative value which means the user owes the friend
+    onSplitBill(whoisPaying === "user" ? paidByUser : paidByFriend);
+  };
+
   return (
-    <form action="" className="form-split-bill">
+    <form action="" className="form-split-bill" onSubmit={handleSubmit}>
       <h2>Split bill with {selectedFriend.name}</h2>
       <label htmlFor="">💰 Bill value</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={bill}
+        onChange={e => setBill(Number(e.target.value))}
+      />
       <label htmlFor="">🧍 Your expense</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={paidByUser}
+        onChange={e =>
+          // Ensure the user's expense is not higher than the bill
+          // if value is higher than the bill, keep the previous value
+          // else if valid, update the value
+          setPaidByUser(
+            Number(e.target.value) > bill ? paidByUser : Number(e.target.value)
+          )
+        }
+      />
       <label htmlFor="">🧍‍♂️ {selectedFriend.name} expense</label>
-      <input type="text" disabled />
+      <input type="text" value={paidByFriend} disabled />
       <label htmlFor="">😵 Who is paying the bill?</label>
-      <select name="" id="">
+      <select
+        value={whoisPaying}
+        onSelect={e => setWhoIsPaying(e.target.value)}
+      >
         <option value="user">You</option>
         <option value="friend">{selectedFriend.name}</option>
       </select>
