@@ -57,6 +57,8 @@ export default function App() {
     setSelectedFriend(curSelection =>
       curSelection?.id === friend.id ? null : friend
     );
+    // Close the FormAddFriend component if it's open
+    setShowAddFriend(false);
   };
 
   // 3. RENDER
