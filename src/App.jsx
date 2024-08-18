@@ -21,14 +21,86 @@ const initialFriends = [
   },
 ];
 
-function App() {
-  const [count, setCount] = useState(0);
-
+export default function App() {
   return (
-    <>
-      <h1>Tip Calculator</h1>
-    </>
+    <div className="app">
+      <div className="sidebar">
+        <FriendsList />
+        <FormAddFriend />
+        <Button>Add Friend</Button>
+      </div>
+      <div className="main">
+        <FormSplitBill />
+      </div>
+    </div>
   );
 }
 
-export default App;
+function FriendsList() {
+  const friends = initialFriends;
+
+  return (
+    <ul>
+      {friends.map(friend => (
+        <Friend key={friend.id} friend={friend} />
+      ))}
+    </ul>
+  );
+}
+
+function Friend({ friend }) {
+  return (
+    <li className="friend">
+      <img src={friend.image} alt={friend.name} />
+      <h3>{friend.name}</h3>
+      {friend.balance < 0 && (
+        <p className="red">
+          You owe {friend.name} {Math.abs(friend.balance)}€
+        </p>
+      )}
+      {friend.balance > 0 && (
+        <p className="green">
+          {friend.name} owes you {Math.abs(friend.balance)}€
+        </p>
+      )}
+      {friend.balance === 0 && <p>You and {friend.name} are even 👍</p>}
+      <Button>Select</Button>
+    </li>
+  );
+}
+
+function Button({ children }) {
+  return <button className="button">{children}</button>;
+}
+
+function FormAddFriend() {
+  return (
+    <form className="form-add-friend">
+      <label htmlFor="">👭Friend Name</label>
+      <input type="text" />
+      <label htmlFor="">🖼️ Image URL</label>
+      <input type="text" />
+      <Button>Add</Button>
+    </form>
+  );
+}
+
+function FormSplitBill() {
+  return (
+    <form action="" className="form-split-bill">
+      <h2>Split bill with x</h2>
+      <label htmlFor="">💰 Bill value</label>
+      <input type="text" />
+      <label htmlFor="">🧍 Your expense</label>
+      <input type="text" />
+      <label htmlFor="">🧍‍♂️ X expense</label>
+      <input type="text" disabled />
+      <label htmlFor="">😵 Who is paying the bill?</label>
+      <select name="" id="">
+        <option value="user">You</option>
+        <option value="friend">x</option>
+      </select>
+      <Button>Split</Button>
+    </form>
+  );
+}
