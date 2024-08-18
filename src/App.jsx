@@ -22,12 +22,34 @@ const initialFriends = [
 ];
 
 export default function App() {
+  // State to toggle the FormAddFriend component
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  // State to store the friends array data
+  const [friends, setFriends] = useState(initialFriends);
+
+  const handleShowAddFriend = () => {
+    // Toggle the value of showAddFriend
+    setShowAddFriend(!showAddFriend);
+  };
+
+  const handleAddFriend = friend => {
+    // Add a new friend and create a new array
+    // take an as argument, spread the existing friends array and add the new friend
+    setFriends(friends => [...friends, friend]);
+    // Close the FormAddFriend component
+    setShowAddFriend(false);
+  };
+
   return (
     <div className="app">
       <div className="sidebar">
-        <FriendsList />
-        <FormAddFriend />
-        <Button>Add Friend</Button>
+        <FriendsList data={friends} />
+        {/* if showAddFriend is true, render FormAddFriend */}
+        {showAddFriend && <FormAddFriend onAddFriend={handleAddFriend} />}
+        <Button onClick={handleShowAddFriend}>
+          {/* // Toggle the button text */}
+          {!showAddFriend ? "Add Friend" : "Close"}
+        </Button>
       </div>
       <div className="main">
         <FormSplitBill />
@@ -36,12 +58,10 @@ export default function App() {
   );
 }
 
-function FriendsList() {
-  const friends = initialFriends;
-
+function FriendsList({ data }) {
   return (
     <ul>
-      {friends.map(friend => (
+      {data.map(friend => (
         <Friend key={friend.id} friend={friend} />
       ))}
     </ul>
@@ -69,18 +89,54 @@ function Friend({ friend }) {
   );
 }
 
-function Button({ children }) {
-  return <button className="button">{children}</button>;
+function Button({ children, onClick }) {
+  return (
+    <button className="button" onClick={onClick}>
+      {children}
+    </button>
+  );
 }
 
-function FormAddFriend() {
+function FormAddFriend({ onAddFriend }) {
+  // State local to the FormAddFriend component
+  const [name, setName] = useState(""); // Default empty name
+  const [image, setImage] = useState("https://i.pravatar.cc/48"); // Default image URL
+
+  const id = crypto.randomUUID(); // Generate a random ID
+
+  const handleSubmit = event => {
+    event.preventDefault();
+
+    // Guard clause to prevent empty name or image
+    if (!name || !image) return;
+
+    // Create a new friend object
+    const newFriend = {
+      id,
+      name,
+      image: `${image}?=${id}`,
+      balance: 0,
+    };
+
+    // Call the onAddFriend function from the parent component
+    onAddFriend(newFriend);
+
+    // Reset the form
+    setName("");
+    setImage("https://i.pravatar.cc/48");
+  };
+
   return (
-    <form className="form-add-friend">
-      <label htmlFor="">👭Friend Name</label>
-      <input type="text" />
-      <label htmlFor="">🖼️ Image URL</label>
-      <input type="text" />
-      <Button>Add</Button>
+    <form className="form-add-friend" onSubmit={handleSubmit}>
+      <label>👭Friend Name</label>
+      <input type="text" value={name} onChange={e => setName(e.target.value)} />
+      <label>🖼️ Image URL</label>
+      <input
+        type="text"
+        value={image}
+        onChange={e => setImage(e.target.value)}
+      />
+      <Button type="submit">Add</Button>
     </form>
   );
 }
